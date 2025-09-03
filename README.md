@@ -27,7 +27,7 @@ O menu principal oferece as seguintes opções:
 
 Você pode executar o projeto de duas maneiras: via linha de comando ou utilizando o Visual Studio Code com a configuração recomendada.
 
-### **Método 1: Via Visual Studio Code (Recomendado)**
+### Método 1: Via Visual Studio Code (Recomendado)
 
 Este método é mais simples e permite que o tabuleiro inicial seja carregado automaticamente.
 
@@ -70,7 +70,7 @@ Este método é mais simples e permite que o tabuleiro inicial seja carregado au
       * Vá para a aba "Executar e Depurar" (Run and Debug) na barra lateral esquerda do VS Code.
       * Selecione a configuração **"Executar Jogo Sudoku"** no menu suspenso e clique no ícone de play (▶️) para iniciar.
 
-### **Método 2: Via Linha de Comando (Tradicional)**
+### Método 2: Via Linha de Comando (Tradicional)
 
 Este método não carregará um tabuleiro inicial, pois os argumentos não serão passados da mesma forma. O código precisaria ser adaptado para ler o template de outra fonte (como um arquivo `BoardTemplate.java` fixo).
 
@@ -102,3 +102,110 @@ Selecione uma das opções a seguir
 2.  Digite `4` para visualizar o tabuleiro inicial.
 3.  Digite `2` para adicionar um número. O programa pedirá a coluna, a linha e o valor.
 4.  Continue jogando até preencher todo o tabuleiro e use as outras opções do menu conforme necessário.
+
+-----
+
+## 📊 Diagrama de Fluxo Lógico
+
+O diagrama abaixo (renderizado em plataformas como o GitHub) ilustra o fluxo de controle da aplicação, mostrando como o programa reage às escolhas do usuário no menu principal.
+
+```mermaid
+graph TD
+    A(Início) --> B{Exibir Menu e\nAguardar Opção};
+    B --> C{Opção do Usuário};
+    C --> D[1. Iniciar Jogo];
+    C --> E[2. Inserir Número];
+    C --> F[3. Remover Número];
+    C --> G[4. Visualizar Jogo];
+    C --> H[5. Status do Jogo];
+    C --> I[6. Limpar Jogo];
+    C --> J[7. Finalizar Jogo];
+    C --> K[8. Sair];
+    C --> L[Opção Inválida];
+
+    D --> D1{Jogo já foi iniciado?};
+    D1 -- Sim --> D2[Avisa: O jogo já foi iniciado];
+    D1 -- Não --> D3[Cria um novo tabuleiro\na partir dos args];
+    D2 --> B;
+    D3 --> B;
+
+    subgraph "Ações que Requerem um Jogo Ativo"
+        E --> M{Jogo foi iniciado?};
+        F --> M;
+        G --> M;
+        H --> M;
+        I --> M;
+        J --> M;
+    end
+
+    M -- Não --> N[Avisa: O jogo não foi iniciado];
+    N --> B;
+    
+    M -- Sim --> E1[Pede e valida\ncoluna linha e valor];
+    E1 --> E2[Tenta inserir o número];
+    E2 --> B;
+
+    M -- Sim --> F1[Pede e valida\ncoluna e linha];
+    F1 --> F2[Tenta remover o número];
+    F2 --> B;
+    
+    M -- Sim --> G1[Imprime o\ntabuleiro atual];
+    G1 --> B;
+
+    M -- Sim --> H1["Verifica e exibe\nstatus: erros e progresso"];
+    H1 --> B;
+
+    M -- Sim --> I1{Confirmar Limpeza?};
+    I1 -- Sim --> I2[Limpa as jogadas\ndo usuário reset];
+    I1 -- Não --> B;
+    I2 --> B;
+
+    M -- Sim --> J1{Jogo completo e sem erros?};
+    J1 -- Sim --> J2[Exibe Parabéns!\ne finaliza o jogo board=null];
+    J2 --> B;
+    J1 -- Não --> J3{O tabuleiro\ncontém erros?};
+    J3 -- Sim --> J4[Avisa: Seu jogo contém erros];
+    J4 --> B;
+    J3 -- Não --> J5[Avisa: Você ainda precisa\npreencher espaços];
+    J5 --> B;
+    
+    L --> L1[Avisa: Opção inválida];
+    L1 --> B;
+
+    K --> Z(Fim);
+
+    %% Estilos
+    style A fill:#4CAF50,color:#fff,stroke:#333
+    style Z fill:#f44336,color:#fff,stroke:#333
+    style B fill:#2196F3,color:#fff,stroke:#333
+
+
+```
+
+### Explicação da Lógica do Diagrama
+
+1.  **Início e Loop Principal:** O programa começa e entra imediatamente em um loop. O coração do programa é o nó **"Exibir Menu e Aguardar Opção"**. Ele representa o `while(true)` que sempre mostra as opções ao usuário.
+
+2.  **Decisão Central:** Após o usuário digitar uma opção, o fluxo vai para a decisão **"Opção do Usuário"**, que funciona como o `switch` no seu código, direcionando para a lógica correta.
+
+3.  **Iniciar Jogo (Opção 1):** Esta é a única ação que funciona sem um jogo pré-existente. Ela verifica se um jogo já está em andamento.
+
+      * Se sim, apenas notifica o usuário.
+      * Se não, cria uma nova instância do `Board` e prepara o jogo para começar.
+
+4.  **Ações que Requerem um Jogo Ativo (Opções 2 a 7):**
+
+      * Todas essas opções compartilham uma verificação inicial crucial: **"Jogo foi iniciado?"** (`if (isNull(board))`).
+      * Se o jogo não foi iniciado, uma mensagem de aviso é exibida e o programa volta ao menu principal.
+      * Se o jogo foi iniciado, a lógica específica de cada opção é executada.
+
+5.  **Lógicas Específicas:**
+
+      * **Inserir/Remover Número:** Pede as coordenadas (e o valor, no caso da inserção) e chama o método correspondente no objeto `Board`.
+      * **Visualizar/Status:** Acessa os dados do `Board` para exibir o estado atual ou a validação do jogo.
+      * **Limpar Jogo:** Adiciona um passo de confirmação para evitar a perda acidental de progresso.
+      * **Finalizar Jogo:** Contém a lógica de verificação mais complexa. Primeiro, checa se o jogo está 100% correto. Se não, ele faz uma segunda verificação para distinguir entre um jogo com erros e um jogo simplesmente incompleto, fornecendo feedback mais preciso ao jogador.
+
+6.  **Saída:** A opção **"Sair"** é o único caminho que quebra o loop principal e leva ao nó **"Fim"**, encerrando a aplicação (`System.exit(0)`).
+
+7.  **Fluxo de Retorno:** Após a conclusão de qualquer ação (exceto "Sair"), o fluxo sempre retorna ao nó **"Exibir Menu"**, permitindo que o usuário realize uma nova ação.
